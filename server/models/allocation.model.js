@@ -52,7 +52,7 @@ export default (sequelize, DataTypes) => {
             foreignKey: "employee_id"
         });
 
-        models.allocationDetails.hasOne(models.comboDetails,{
+        models.allocationDetails.hasMany(models.comboDetails,{
             foreignKey: "allocation_id"
         })
     };

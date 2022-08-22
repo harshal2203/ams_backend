@@ -27,5 +27,8 @@ export default {
     // Employee Attributes
     employee: ["id", "first_name", "last_name", "status"],
     combo: ["product_id", ],
-    product: ["category_id","product_name"]
+    product: ["category_id","product_name"],
+
+    // Allocations Attributes
+    allocation: ["id","combo_id","employee_id",]
 }

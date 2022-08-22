@@ -72,18 +72,18 @@ export default (sequelize, DataTypes) => {
             type: Sequelize.INTEGER,
             defaultValue: commonStatuses.INACTIVE.id
         },
-        email_verified: {
-            type: Sequelize.INTEGER,
-            defaultValue: 0
-          },
-          email_verified_at: {
-            type: Sequelize.DATE,
-            defaultValue: null
-          },
-          email_verification_code: {
-            type: Sequelize.STRING,
-            defaultValue: null
-          },
+        // email_verified: {
+        //     type: Sequelize.INTEGER,
+        //     defaultValue: 0
+        //   },
+        //   email_verified_at: {
+        //     type: Sequelize.DATE,
+        //     defaultValue: null
+        //   },
+        //   email_verification_code: {
+        //     type: Sequelize.STRING,
+        //     defaultValue: null
+        //   },
         updated_by: {
             type: Sequelize.STRING,
             defaultValue: null

@@ -12,7 +12,6 @@ login Controller
 */
 const login = (req, res, next) => {
   const bodyData = _.get(req, "body", {});
-  // console.log("reqqqqqqqqqqq____________",bodyData);
   userServices.login(bodyData).then((result) => {
     res.status(result.status).send(result);
 
@@ -43,7 +42,6 @@ const createUser = (req, res) => {
 */
 
 const userProfile = async (req, res, next) => {
-
   const payload = {
     userId: _.get(req, "params.id", {})
   }
@@ -57,7 +55,6 @@ const userProfile = async (req, res, next) => {
 
 const emp_userProfile = async (req, res, next) => {
   let tokenUser = _.get(req, "tokenUser", {})
-  //console.log("tokenUser>>>",tokenUser);
   userServices.emp_userProfile(tokenUser).then(result => {
     res.status(result.status).send(result);
 
@@ -65,7 +62,6 @@ const emp_userProfile = async (req, res, next) => {
     res.status(422).send({ status: 422, message: (err.message || "Something went wrong!") });
   })
 }
-
 
 /*
 *   
@@ -100,22 +96,18 @@ const changePassword = async (req, res, next) => {
 
 }
 
-
-
 /**
  * Update User info
  *
  * @param Request request
  */
  const updateUser = async (req, res, next) => {
-  // let data = _.get(req,"body",{});
   userServices.updateUser(req).then(result => {
     res.status(result.status).send(result);
   }).catch(err => {
     res.status(422).send({ status: 422, message: (err.message || "Something went wrong!") });
   });
 }
-
 
 
 /**
@@ -133,8 +125,6 @@ const changePassword = async (req, res, next) => {
 
 }
  const logout = async (req, res, next) => {
- 
-
   userServices.logout(req).then(result => {
     res.status(result.status).send(result);
   }).catch(err => {
@@ -142,7 +132,6 @@ const changePassword = async (req, res, next) => {
   });
 
 }
-
 
 
 /**
@@ -153,7 +142,6 @@ const changePassword = async (req, res, next) => {
  const changestatus = async (req, res, next) => {
 
   const userId = _.get(req, "params.id", 0);
-
   userServices.statusChange(userId).then(result => {
     res.status(result.status).send(result);
   }).catch(err => {

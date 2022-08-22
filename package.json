@@ -20,13 +20,13 @@
   "author": "author",
   "license": "ISC",
   "bugs": {
-    "url": "https://koli_nihal@bitbucket.org/dbk16/ipg_backend.git"     
+    "url": "https://koli_nihal@bitbucket.org/dbk16/ipg_backend.git"
   },
   "babel": {
     "presets": [
       "@babel/preset-env"
     ],
-    "plugins": [  
+    "plugins": [
       "@babel/transform-runtime"
     ]
   },

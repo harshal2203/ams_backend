@@ -22,7 +22,7 @@ export const userRoles = {
     id: 1,
     title: "admin"
   },
-  VENDOR_ROLE: {
+  HR_ROLE: {
     id: 2,
     title: "hr"
   },

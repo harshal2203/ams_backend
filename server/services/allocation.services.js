@@ -86,7 +86,7 @@ const getAllocation = async (req) => {
       include:[{model: models.ProductDetails, attributes: modelConstants.product}]
     });
     let data = {
-      // allocationDetails: alloctaion,
+      allocationDetails: alloctaion,
       comboDetails: combo
     }
     if (alloctaion) {
@@ -103,8 +103,6 @@ const getAllocation = async (req) => {
 };
 
 
-
-
 /**
  *Update Allocation detail
  *
@@ -114,8 +112,7 @@ const updateAllocation = async (req) => {
   let responseData = statusConst.error;
   let data = _.get(req, "body", {});
   let Id = _.get(req, "params.id", {});
-  //  console.log("data>>>", data);
-  //  console.log("Id>>>", Id);
+
   const checkUserid = await models.UserDetails.findOne({ where: { id: data.employee_id } });// do not assign to already exist user
   if(checkUserid){
   try {
@@ -148,7 +145,6 @@ const updateAllocation = async (req) => {
 };
 
 
-
 /**
  *Delete Allocation
  *
@@ -175,7 +171,6 @@ const deleteAllocation = async (id) => {
   }
   return responseData;
 };
-
 
 
 /**

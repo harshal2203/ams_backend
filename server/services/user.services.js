@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import statusConst from "../common/statusConstants";
-import { get, isEmpty, isObject, omit, find, chain, has, } from "lodash";
+import { get, isEmpty, isObject, omit, find, chain, has } from "lodash";
 const _ = { get, isEmpty, isObject, omit, find, chain, has };
 import Models from "../models";
 import appConfig from "../common/appConfig";
@@ -10,9 +10,6 @@ import Helper from "../common/helper";
 import dbHelper from "../common/dbHelper";
 import modelConstants from "../common/modelConstants";
 import { Op } from "sequelize";
-// import EmailServices from "./email.services"
-
-
 
 /**
  * Login to user and generate JWT
@@ -20,9 +17,7 @@ import { Op } from "sequelize";
  * @param Request request
  */
 const login = async (req) => {
-
   let responseData = statusConst.authError;
-  // const data = _.get(req, "body", "");
   try {
     const email = req.email;
     const password = req.password;
@@ -33,32 +28,21 @@ const login = async (req) => {
         status: commonStatuses.ACTIVE.id,
       },
     });
-    // console.log("User>>>>>>>>>>",User);
 
     const userPassword = _.get(User, "password", "");
+
     const validPassword = await bcrypt.compare(password, userPassword);
 
-    if (
-      !_.isEmpty(User) &&
-      _.isObject(User) &&
-      validPassword === true &&
-      !_.isEmpty(password)
-    ) {
-      if (User.dataValues.email_verified == 0) {
-        responseData = {
-          ...statusConst.authError,
-          message: "Email not verified",
-        };
-      } else {
-        const tokenData = await generateToken({
+    if (!_.isEmpty(User) &&_.isObject(User) &&validPassword === true &&!_.isEmpty(password)) {
+            const tokenData = await generateToken({
           id: User.id,
         });
+
         const token = _.get(tokenData, "token", null);
         if (token) {
           await User.update({ token });
           responseData = { ...statusConst.authSuccess, data: { token } };
         }
-      }
     }
   } catch (err) {
     responseData = { ...statusConst.error, message: err.message };
@@ -104,14 +88,24 @@ const generateToken = async (options = {}) => {
       where: { id: userId },
     });
     if (_.isEmpty(User)) {
-      return { ...statusConst.error, message: "User not found",success: false };
+      return {
+        ...statusConst.error,
+        message: "User not found",
+        success: false,
+      };
     }
 
     let userData = User.get({ plain: true }) || {};
 
     // Change the status and roles to string from integer
-    userData.status = _.chain(commonStatuses).find({ id: userData.status }).get("title", "").value();
-    userData.role = _.chain(userRoles).find({ id: userData.user_role_id }).get("title", "").value();
+    userData.status = _.chain(commonStatuses)
+      .find({ id: userData.status })
+      .get("title", "")
+      .value();
+    userData.role = _.chain(userRoles)
+      .find({ id: userData.user_role_id })
+      .get("title", "")
+      .value();
 
     // Omit unwanted data in the last once all the related activities are done
     userData = _.omit(
@@ -139,15 +133,12 @@ const generateToken = async (options = {}) => {
       await User.update({ token });
     }
 
-    responseData = { ...statusConst.success, token,success:true, };
+    responseData = { ...statusConst.success, token, success: true };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
-
 
 /**
  * create user
@@ -156,68 +147,78 @@ const generateToken = async (options = {}) => {
  */
 const createUser = async (data) => {
   let responseData = statusConst.error;
-  const bodyData = _.get(data,"body", {});
-  const checkUser = _.get(data,"tokenUser",{});
-  // console.log("checkUser>>>>>>>>>>>",checkUser);
-  const checkEmailExicteInTable = await Models.UserDetails.findOne({where:{email:bodyData.email}});
-  if(!checkEmailExicteInTable){
-  try {
-    //const emailVerification = Helper.generateEmailVerificationDetails();
-    let userPayload = {
-      user_role_id: bodyData.user_role_id || 1,
-      email: bodyData.email || "",
-      token: bodyData.token || "",
-      first_name: bodyData.first_name || "",
-      last_name: bodyData.last_name || "",
-      phone: bodyData.phone || "",
-      dob: bodyData.dob || "",
-      password: await bcrypt.hash(bodyData.password, appConfig.bcryptSaltRound) || "",
-      status: commonStatuses.ACTIVE.id,
-      //...emailVerification,
-      created_by: checkUser.first_name +" "+ checkUser.last_name,
-      updated_by: ""
+  const bodyData = _.get(data, "body", {});
+  const checkUser = _.get(data, "tokenUser", {});
+  const checkEmailExicteInTable = await Models.UserDetails.findOne({
+    where: { email: bodyData.email },
+  });
 
-    };
-    if(checkUser.user_role_id== 1 || checkUser.user_role_id== 2){ // employee can not create another employee
-      if(checkUser.user_role_id== 2 && userPayload.user_role_id ==1){ // HR can not create Admin
-        responseData = { ...statusConst.error, message: "HR can not create admin" };
-      }else{
-      const user = await Models.UserDetails.create(userPayload);
-      // console.log("user>>>>>>>>",user);
-      const userId = _.get(user, "id", 0);
-      // User  not created, throw an exception
-      if (!userId) {
-        throw new Error("Unable to create new User ");
-      }
-      responseData = {
-        ...statusConst.success,
-        message: "User created successfully", success:true,
-        data: user,
-      };
-    }
-    }else{
-      responseData = { ...statusConst.error, message: "Unauthorized user" };
-    }
-  } catch (error) {
-    let errors = {};
-    // Default message
-    responseData = { ...statusConst.error, message: error.message };
+  if (!checkEmailExicteInTable) {
     try {
-      if (
-        ["SequelizeValidationError", "SequelizeUniqueConstraintError"].includes(
-          error.name
-        )
-      ) {
-        errors = dbHelper.formatSequelizeErrors(error);
-        responseData = { ...statusConst.validationErrors, errors };
+      let userPayload = {
+        user_role_id: bodyData.user_role_id || userRoles.EMPLOYEE_ROLE.id,
+        email: bodyData.email || "",
+        token: bodyData.token || "",
+        first_name: bodyData.first_name || "",
+        last_name: bodyData.last_name || "",
+        phone: bodyData.phone || "",
+        dob: bodyData.dob || "",
+        password:
+          (await bcrypt.hash(bodyData.password, appConfig.bcryptSaltRound)) ||
+          "",
+        status: commonStatuses.ACTIVE.id,
+        created_by: checkUser.first_name + " " + checkUser.last_name,
+        updated_by: "",
+      };
+      // Checking login user,Becoues Admin and HR can only create user's
+      if (checkUser.user_role_id == userRoles.ADMIN_ROLE.id ||checkUser.user_role_id == userRoles.HR_ROLE.id) {
+        // HR can not create Admin
+        if (checkUser.user_role_id == userRoles.HR_ROLE.id && userPayload.user_role_id == userRoles.ADMIN_ROLE.id) {
+          responseData = {
+            ...statusConst.error,
+            message: "HR can not create admin",
+          };
+        } else {
+          const user = await Models.UserDetails.create(userPayload);
+          const userId = _.get(user, "id", 0);
+          // User  not created, throw an exception
+          (!userId)
+            ? (responseData = {
+                ...statusConst.error,
+                message: "Unable to create new User",
+                success: true,
+                data: [],
+              })
+            : (responseData = {
+                ...statusConst.success,
+                message: "User created successfully",
+                success: true,
+                data: user,
+              });
+                }
+      } else {
+        responseData = { ...statusConst.error, message: "Unauthorized user" };
       }
     } catch (error) {
+      let errors = {};
+      // Default message
       responseData = { ...statusConst.error, message: error.message };
+      try {
+        if (["SequelizeValidationError","SequelizeUniqueConstraintError",].includes(error.name)) {
+          errors = dbHelper.formatSequelizeErrors(error);
+          responseData = { ...statusConst.validationErrors, errors };
+        }
+      } catch (error) {
+        responseData = { ...statusConst.error, message: error.message };
+      }
     }
+  } else {
+    responseData = {
+      ...statusConst.error,
+      message: "Email is alredy in use",
+      success: false,
+    };
   }
-} else {
-  responseData = { ...statusConst.error, message: "Email alredy in use", success:false };
-}
   return responseData;
 };
 
@@ -226,7 +227,7 @@ const createUser = async (data) => {
  * display single user details
  *
  */
- const userProfile = async (payload) => {
+const userProfile = async (payload) => {
   let responseData = statusConst.fetchResourceError;
   try {
     const userId = _.get(payload, "userId", 0);
@@ -234,23 +235,30 @@ const createUser = async (data) => {
     const userData = await Models.UserDetails.findOne({
       where: { id: userId },
     });
-    // console.log(">>>>>>>>",userData);
-    const userDataPayload = {
-      id: userData.id,
-      user_role_id: userData.user_role_id,
-      email: userData.email,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      phone: userData.phone,
-      dob: userData.dob,
-      status: userData.status,
-      email_verified: userData.email_verified
+    responsePayload = {
+
     }
+    
     if (userData) {
+      const data = await Models.allocationDetails.findOne({where: {employee_id: userId},
+        attributes: modelConstants.allocation,
+      include:[{
+        model : Models.comboDetails, 
+        attributes: {exclude: ['id','allocation_id','status','created_at','updated_at']},
+        include: [{
+          model: Models.ProductDetails,
+          include: [{model: Models.categoryDetails,
+          attributes: {exclude: ['id','status','created_at','updated_at']}
+                  }]
+        }]
+      }],
+      });
+      
       responseData = {
         ...statusConst.fetchSucccess,
-        message: "User fetch successfully",success:true,
-        data: userDataPayload,
+        message: "User fetch successfully",
+        success: true,
+        data: data, 
       };
     } else {
       responseData = {
@@ -259,11 +267,14 @@ const createUser = async (data) => {
       };
     }
   } catch (error) {
-    responseData = { ...statusConst.error, message: "User not found",success: false };
+    responseData = {
+      ...statusConst.error,
+      message: "User not found",
+      success: false,
+    };
   }
   return responseData;
 };
-
 
 /**
  *
@@ -273,18 +284,16 @@ const createUser = async (data) => {
 const emp_userProfile = async (payload) => {
   let responseData = statusConst.fetchResourceError;
   try {
-    // const userId = _.get(payload, "userId", 0);
-    //console.log("payload>>>>>>>",payload.id);
 
     const userData = await Models.UserDetails.findOne({
-      // where: { id: userId },
       where: { id: payload.id },
     });
 
     if (userData) {
       responseData = {
         ...statusConst.fetchSucccess,
-        message: "User fetch successfully",success:true,
+        message: "User fetch successfully",
+        success: true,
         data: userData,
       };
     } else {
@@ -294,7 +303,11 @@ const emp_userProfile = async (payload) => {
       };
     }
   } catch (error) {
-    responseData = { ...statusConst.error, message: "User not found",success: false };
+    responseData = {
+      ...statusConst.error,
+      message: "User not found",
+      success: false,
+    };
   }
   return responseData;
 };
@@ -308,7 +321,9 @@ const users = async (req) => {
   let responseData = statusConst.error;
   const entityParams = _.get(req, "query", {});
   let searchText = _.get(entityParams, "q", "");
-  let defaultWhere = { /* status: 1 */ };
+  let defaultWhere = {
+    /* status: 1 */
+  };
 
   if (_.has(entityParams, "q") && !_.isEmpty(searchText)) {
     defaultWhere = {
@@ -340,7 +355,12 @@ const users = async (req) => {
     );
     pagination["pageRecords"] = ((users || {}).rows || []).length || 0;
 
-    responseData = { ...statusConst.success,success:true, pagination, data: users };
+    responseData = {
+      ...statusConst.success,
+      success: true,
+      pagination,
+      data: users,
+    };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
@@ -353,7 +373,11 @@ const users = async (req) => {
  * @param String JWT token
  */
 const findByToken = async (token) => {
-  let responseData = { ...statusConst.error, message: "user not found",success: false };
+  let responseData = {
+    ...statusConst.error,
+    message: "user not found",
+    success: false,
+  };
   try {
     // Find user by token
     const User = await Models.UserDetails.findOne({
@@ -363,9 +387,13 @@ const findByToken = async (token) => {
       },
     });
     if (!_.isEmpty(User) && _.isObject(User)) {
-      responseData = { ...statusConst.success,success:true, data: User };
+      responseData = { ...statusConst.success, success: true, data: User };
     } else {
-      responseData = { ...statusConst.error, message: "user not found",success: false };
+      responseData = {
+        ...statusConst.error,
+        message: "user not found",
+        success: false,
+      };
     }
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
@@ -373,7 +401,6 @@ const findByToken = async (token) => {
 
   return responseData;
 };
-
 
 const changePassword = async (payload) => {
   let responseData = statusConst.authError;
@@ -410,127 +437,142 @@ const changePassword = async (payload) => {
 
         responseData = {
           ...statusConst.authSuccess,
-          message: "Password change succesfully",success:true,
+          message: "Password change succesfully",
+          success: true,
         };
       } else {
         responseData = {
-          ...statusConst.error,message: "Current password is not vailid", success: false
+          ...statusConst.error,
+          message: "Current password is not vailid",
+          success: false,
         };
       }
     } else {
-      responseData = { ...statusConst.error, message: "User not found",success: false };
+      responseData = {
+        ...statusConst.error,
+        message: "User not found",
+        success: false,
+      };
     }
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
-
 
 /**
  *Update User detail
  *
  * @param Request request
  */
- const updateUser = async (req) => {
+const updateUser = async (req) => {
   let responseData = statusConst.error;
 
   const userId = _.get(req, "params.id", 0);
   let data = _.get(req, "body", {});
-  const checkUser = _.get(req,"tokenUser",{});
+  const checkUser = _.get(req, "tokenUser", {});
   try {
     //Check if  exist
     const user = await Models.UserDetails.findOne({
       where: { id: userId },
     });
-    // console.log(">>>>>>>>>>>>>>",user);
     if (!user) {
-      return { ...statusConst.error, message: "User not found",success: false };
+      return {
+        ...statusConst.error,
+        message: "User not found",
+        success: false,
+      };
     } else {
       const userUpdatePayload = {
-      user_role_id: data.user_role_id || "",
-      email: data.email || "",
-      token: data.token || "",
-      first_name: data.first_name || "",
-      last_name: data.last_name || "",
-      phone: data.phone || "",
-      dob: data.dob || "",
-      password: await bcrypt.hash(data.password, appConfig.bcryptSaltRound) || "",
-      status: commonStatuses.ACTIVE.id,
-      updated_by: checkUser.first_name + " " + checkUser.last_name
+        user_role_id: data.user_role_id || "",
+        email: data.email || "",
+        token: data.token || "",
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        phone: data.phone || "",
+        dob: data.dob || "",
+        password:
+          (await bcrypt.hash(data.password, appConfig.bcryptSaltRound)) || "",
+        status: commonStatuses.ACTIVE.id,
+        updated_by: checkUser.first_name + " " + checkUser.last_name,
       };
-      
+
       const updatedUser = user.update({ ...userUpdatePayload });
       responseData = {
         ...statusConst.success,
-        message: "User udated successfully",success:true,
-        updatedUser:updatedUser
+        message: "User udated successfully",
+        success: true,
+        updatedUser: updatedUser,
       };
     }
-    
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
-
-
 
 /**
  *Delete User
  *
  * @param Request request
  */
- const deleteUser = async (req) => {
+const deleteUser = async (req) => {
   let responseData = statusConst.error;
   const userId = _.get(req, "params.id", {});
   try {
     //Check if  exist
     const user = await Models.UserDetails.findOne({ where: { id: userId } });
     if (!user) {
-      return { ...statusConst.error, message: "user not found",success: false };
+      return {
+        ...statusConst.error,
+        message: "user not found",
+        success: false,
+      };
     } else {
       user.update({ status: commonStatuses.INACTIVE.id });
       responseData = {
         ...statusConst.success,
-        message: "user deleted successfully",success:true,
+        message: "user deleted successfully",
+        success: true,
       };
     }
-    
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
 
- const logout = async (req) => {
+const logout = async (req) => {
   let responseData = statusConst.error;
   let tokenUser = _.get(req, "tokenUser", {});
-  // console.log(">>>>>>>>>>>>>tokenUser",tokenUser);
   try {
     //Check if  exist
-    const user = await Models.UserDetails.findOne({ where: { id: tokenUser.id } });
-    // console.log(">>>>>>>>>>>>user",user);
+    const user = await Models.UserDetails.findOne({
+      where: { id: tokenUser.id },
+    });
     if (!user) {
-      return { ...statusConst.error, message: "user not found",success: false };
+      return {
+        ...statusConst.error,
+        message: "user not found",
+        success: false,
+      };
     } else {
       user.update({ token: "" });
       responseData = {
         ...statusConst.success,
-        message: "user logout successfully",success:true,
+        message: "user logout successfully",
+        success: true,
       };
     }
-    
   } catch (error) {
-    responseData = { ...statusConst.error, message: "User already loged out",success: false };
+    responseData = {
+      ...statusConst.error,
+      message: "User already loged out",
+      success: false,
+    };
   }
   return responseData;
 };
-
 
 /**
  * Change Status category
@@ -538,7 +580,7 @@ const changePassword = async (payload) => {
  * @param Request request
  */
 
- const statusChange = async (data) => {
+const statusChange = async (data) => {
   let responseData = statusConst.error;
   let userId = data;
 
@@ -548,7 +590,11 @@ const changePassword = async (payload) => {
       where: { id: userId },
     });
     if (!user) {
-      return { ...statusConst.error, message: "User not found",success:false };
+      return {
+        ...statusConst.error,
+        message: "User not found",
+        success: false,
+      };
     } else {
       let statuschange;
       if (user.status == 1) {
@@ -560,14 +606,14 @@ const changePassword = async (payload) => {
     }
     responseData = {
       ...statusConst.success,
-      message: "Status Changed",success:true,
+      message: "Status Changed",
+      success: true,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
 
 const UserServices = {
   createUser,
