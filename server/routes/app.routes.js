@@ -134,6 +134,10 @@ export const allocationRoutes = {
 
 
 export const comboRoutes = {
+  
+  available_product: {
+    path: "/",
+  },
   get: {
       path: "/:id",
   },
@@ -149,5 +153,6 @@ export const comboRoutes = {
   combo_details: {
     path: "/",
   }
+  
 
 };

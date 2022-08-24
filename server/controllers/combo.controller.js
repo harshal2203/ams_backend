@@ -13,8 +13,21 @@ const getCombo = async (req, res) => {
   const payload = {
     categoryId: _.get(req, "params.id", {})
   } 
-  console.log("???????????",payload);
   comboServices.getCombo(payload).then(result => {
+    res.status(result.status).send(result);
+
+  }).catch(err => {
+    res.status(422).send({ status: 422, message: (err.message || "Something went wrong!") });
+  });
+}
+/**
+ * getAvailableCategoriesProducts  info
+ *  
+ * @param Request request
+ */
+
+const getCategoriesAvailableProducts = async (req, res) => {
+  comboServices.getCategoriesAvailableProducts(req).then(result => {
     res.status(result.status).send(result);
 
   }).catch(err => {
@@ -60,8 +73,6 @@ const createCombo = async (req, res, next) => {
  * @param Request request
  */
 const updateCombo = async (req, res, next) => {
-  // let data = _.get(req,"body",{});
-  // console.log("data>>>>",data);
   comboServices.updateCombo(req).then(result => {
     res.status(result.status).send(result);
   }).catch(err => {
@@ -100,6 +111,7 @@ const categoryController = {
   createCombo,
   updateCombo,
   deleteCombo,
+  getCategoriesAvailableProducts
 };
 
 export default categoryController;

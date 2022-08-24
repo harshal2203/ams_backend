@@ -10,11 +10,9 @@ const _ = { get, isEmpty };
  * @param Request request
  */
 const categoryProfile = async (req, res) => {
-  //console.log(">>>>>>>>>",req);
   const payload = {
     categoryId: _.get(req, "params.id", {})
   } 
-// console.log("categoryId>>>>>",payload);
   categoryServices.categoryProfile(payload).then(result => {
     res.status(result.status).send(result);
 
@@ -22,7 +20,6 @@ const categoryProfile = async (req, res) => {
     res.status(422).send({ status: 422, message: (err.message || "Something went wrong!") });
   });
 }
-
 
 
 /**
@@ -115,8 +112,6 @@ const deleteCategory = async (req, res, next) => {
  }
 
 
-
-
 /**
  *  generateStock 
  *
@@ -137,9 +132,7 @@ const deleteCategory = async (req, res, next) => {
  * @param Request request
  */
  const changestatus = async (req, res, next) => {
-
   const categoryId = _.get(req, "params.id", 0);
-
   categoryServices.statusChange(categoryId).then(result => {
     res.status(result.status).send(result);
   }).catch(err => {

@@ -14,9 +14,6 @@ import { Op } from "sequelize";
 import sequelize from "sequelize";
 // import EmailServices from "./email.services"
 
-
-
-
 /**
  *Single Company detail
  *
@@ -37,19 +34,26 @@ const categoryProfile = async (payload) => {
     if (categoryData) {
       responseData = {
         ...statusConst.fetchSucccess,
-        message: "category fetch successfully", success: true,
+        message: "category fetch successfully",
+        success: true,
         categoryInfo,
       };
     } else {
-      responseData = { ...statusConst.error, message: "category does not exist", success: false };
+      responseData = {
+        ...statusConst.error,
+        message: "category does not exist",
+        success: false,
+      };
     }
   } catch (error) {
-    responseData = { ...statusConst.error, message: "category not found", success: false };
+    responseData = {
+      ...statusConst.error,
+      message: "category not found",
+      success: false,
+    };
   }
   return responseData;
 };
-
-
 
 /**
  * Category Details
@@ -61,7 +65,6 @@ const categoryDetails = async (req) => {
   let responseData = statusConst.error;
   const entityParams = _.get(req, "query", {});
   const searchText = _.get(entityParams, "q", "");
-  // console.log("categoryDetails>>>>>>>",entityParams);
   let defaultWhere = { status: 1 };
   if (_.has(entityParams, "q") && !_.isEmpty(searchText)) {
     defaultWhere = {
@@ -73,7 +76,6 @@ const categoryDetails = async (req) => {
     };
   }
   try {
-
     const entityPagination = Helper.dataPagination(entityParams);
 
     const categoryDeatail = await models.categoryDetails.findAndCountAll({
@@ -81,31 +83,27 @@ const categoryDetails = async (req) => {
       where: defaultWhere,
       offset: entityPagination.offset,
       limit: entityPagination.limit,
-      order: [
-        ['id', 'DESC'],
-      ]
+      order: [["id", "DESC"]],
     });
-    // const categoryDeatail = await models.categoryDetails.findAll({});
-    // console.log(">>>>>>>>>>><<><<><>",categoryDeatail);
     let pagination = entityPagination.pagination;
 
-    pagination["totalPages"] = Math.ceil(((categoryDeatail || categoryDeatail).count) / pagination.pageSize);
-    pagination["pageRecords"] = ((categoryDeatail || {}).rows || []).length || 0;
-
-
+    pagination["totalPages"] = Math.ceil(
+      (categoryDeatail || categoryDeatail).count / pagination.pageSize
+    );
+    pagination["pageRecords"] =
+      ((categoryDeatail || {}).rows || []).length || 0;
 
     responseData = {
-      ...statusConst.success, success: true,
-      pagination, data: categoryDeatail
+      ...statusConst.success,
+      success: true,
+      pagination,
+      data: categoryDeatail,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
-
 
 /**
  * Category category_List
@@ -117,7 +115,9 @@ const categoryList = async (req) => {
   let responseData = statusConst.error;
   const entityParams = _.get(req, "query", {});
   const searchText = _.get(entityParams, "q", "");
-  let defaultWhere = {/*  status: 1 */ };
+  let defaultWhere = {
+    /*  status: 1 */
+  };
 
   if (_.has(entityParams, "q") && !_.isEmpty(searchText)) {
     defaultWhere = {
@@ -130,7 +130,6 @@ const categoryList = async (req) => {
   }
 
   try {
-
     const entityPagination = Helper.dataPagination(entityParams);
 
     const categoryList = await models.categoryDetails.findAll({
@@ -138,25 +137,25 @@ const categoryList = async (req) => {
       where: defaultWhere,
       offset: entityPagination.offset,
       limit: entityPagination.limit,
-      order: [
-        ['id', 'DESC'],
-      ]
-
+      order: [["id", "DESC"]],
     });
 
     let pagination = entityPagination.pagination;
     pagination["totalPages"] = Math.ceil(
-      ((categoryList || {}).count || 0) / pagination.pageSize);
-    pagination["pageRecords"] =
-      ((categoryList || {}).rows || []).length || 0;
-    responseData = { ...statusConst.success, success: true, data: categoryList };
+      ((categoryList || {}).count || 0) / pagination.pageSize
+    );
+    pagination["pageRecords"] = ((categoryList || {}).rows || []).length || 0;
+    responseData = {
+      ...statusConst.success,
+      success: true,
+      data: categoryList,
+    };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
 
   return responseData;
 };
-
 
 /**
  *Update Category detail
@@ -175,7 +174,11 @@ const updateCategory = async (req) => {
     });
 
     if (!category) {
-      return { ...statusConst.error, message: "category not found", success: false };
+      return {
+        ...statusConst.error,
+        message: "category not found",
+        success: false,
+      };
     } else {
       const categoryUpdatePayload = {
         category_name: data.category_name || "",
@@ -185,15 +188,14 @@ const updateCategory = async (req) => {
     }
     responseData = {
       ...statusConst.success,
-      message: "Category udated successfully", success: true,
+      message: "Category udated successfully",
+      success: true,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
 
 /**
  *Delete Category
@@ -205,16 +207,23 @@ const deleteCategory = async (id) => {
 
   try {
     //Check if  exist
-    const category = await models.categoryDetails.findOne({ where: { id: id } });
+    const category = await models.categoryDetails.findOne({
+      where: { id: id },
+    });
 
     if (!category) {
-      return { ...statusConst.error, message: "category not found", success: false };
+      return {
+        ...statusConst.error,
+        message: "category not found",
+        success: false,
+      };
     } else {
       category.update({ status: commonStatuses.INACTIVE.id });
     }
     responseData = {
       ...statusConst.success,
-      message: "category deleted successfully", success: true,
+      message: "category deleted successfully",
+      success: true,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
@@ -222,14 +231,12 @@ const deleteCategory = async (id) => {
   return responseData;
 };
 
-
-
 /**
  * Category registrasion
  *
  * @param Request request
  */
-const createCategory = async req => {
+const createCategory = async (req) => {
   let responseData = statusConst.error;
   let data = _.get(req, "body", {});
   try {
@@ -238,15 +245,18 @@ const createCategory = async req => {
       status: commonStatuses.ACTIVE.id,
     };
     // Create new Category entity
-    const categoryDetails = await models.categoryDetails.create(categoryPayload, { raw: true });
-    // const categoryId = _.get(categoryDetails, "id", 0);
+    const categoryDetails = await models.categoryDetails.create(
+      categoryPayload,
+      { raw: true }
+    );
     // Category not created, throw an exception
     if (!categoryDetails) {
       throw new Error("Unable to create new Category");
     } else {
       responseData = {
         ...statusConst.success,
-        message: "Category create successfully", success: true,
+        message: "Category create successfully",
+        success: true,
         data: categoryDetails,
       };
     }
@@ -285,7 +295,11 @@ const multipleDeleteCategory = async (data) => {
       where: { id: { [Op.in]: ID } },
     });
     if (!category) {
-      return { ...statusConst.error, message: "category not found", success: false };
+      return {
+        ...statusConst.error,
+        message: "category not found",
+        success: false,
+      };
     } else {
       category.map((result) => {
         result.update({ status: commonStatuses.INACTIVE.id });
@@ -293,14 +307,14 @@ const multipleDeleteCategory = async (data) => {
     }
     responseData = {
       ...statusConst.success,
-      message: "category deleted successfully", success: true,
+      message: "category deleted successfully",
+      success: true,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
 
 /**
  * Get Stock
@@ -313,76 +327,82 @@ const generateStock = async (req) => {
   try {
     //Colunt stock
     const stock = await models.ProductDetails.findAll({
-      attributes: ["category_id",
+      attributes: [
+        "category_id",
         [sequelize.fn("COUNT", sequelize.col("category_id")), "Stock"],
       ],
-      //attributes: {exclude: ['category_id']},
-      include: [{ model: models.categoryDetails, attributes: modelConstants.category_List }],
+      include: [
+        {
+          model: models.categoryDetails,
+          attributes: modelConstants.category_List,
+        },
+      ],
       group: "category_id",
-
     });
 
-    let stockdetails = stock.map(result => {
-      let data = result.dataValues
+    let stockdetails = stock.map((result) => {
+      let data = result.dataValues;
       return data;
-    })
-
+    });
 
     //Assined product
     const assingCombo = await models.comboDetails.findAll({});
     const proId = [];
-    let productID = assingCombo.map(result => {
+    let productID = assingCombo.map((result) => {
       let data = result.dataValues.product_id;
       proId.push(data);
-    })
+    });
     const ProductDetails = await models.ProductDetails.findAll({
       where: { id: { [Op.in]: proId } },
-      attributes: ["category_id",
+      attributes: [
+        "category_id",
         [sequelize.fn("COUNT", sequelize.col("category_id")), "AssingStock"],
       ],
-      include: [{ model: models.categoryDetails, attributes: modelConstants.category_List }],
+      include: [
+        {
+          model: models.categoryDetails,
+          attributes: modelConstants.category_List,
+        },
+      ],
       group: "category_id",
-    })
+    });
 
-    let assignstockdetails = ProductDetails.map(result => {
-      let data = result.dataValues
+    let assignstockdetails = ProductDetails.map((result) => {
+      let data = result.dataValues;
       return data;
-    })
-
+    });
     //stockdetails = stockdetails.map(stockdetails => { return _.omit(stockdetails, ['category_id']) }); //omit category id
-    let kk = stockdetails.map(data1 => { return data1.CategoryName = data1.categoryDetail.category_name })
-    stockdetails = stockdetails.map(data => { return _.omit(data, ["categoryDetail"]) })
+    let kk = stockdetails.map((data1) => {
+      return (data1.CategoryName = data1.categoryDetail.category_name);
+    });
+    stockdetails = stockdetails.map((data) => {
+      return _.omit(data, ["categoryDetail"]);
+    });
 
     //assignstockdetails = assignstockdetails.map(assignstockdetails => { return _.omit(assignstockdetails, ['category_id']) }); //omit category id
-    let assign = assignstockdetails.map(data2 => { return data2.CategoryName = data2.categoryDetail.category_name })
-    assignstockdetails = assignstockdetails.map(data => { return _.omit(data, ["categoryDetail"]) })
+    let assign = assignstockdetails.map((data2) => {
+      return (data2.CategoryName = data2.categoryDetail.category_name);
+    });
+    assignstockdetails = assignstockdetails.map((data) => {
+      return _.omit(data, ["categoryDetail"]);
+    });
 
-    // const arr = [];
-    // stockdetails.map(item => {
-    //   arr.push(item.category_id)
-    // })
-    // console.log("----------->", arr);
-    // console.log("startingStock>>>>>>>>", stockdetails);
-    // console.log("AssigningStock>>>>>>>>", assignstockdetails);
-    // let stockManage = {
-    //   startingStock: stockdetails,
-    //   AssigningStock: assignstockdetails,
-    // }
-    // let arry = []
-    let test  = _.merge(stockdetails, assignstockdetails);
+    let test = _.merge(stockdetails, assignstockdetails);
+    const availableStock = test.map((res) => {
+      res.AvailableStock = res.Stock - (res.AssingStock ? res.AssingStock : 0);
+    });
+    console.log("availableStock :>>", availableStock);
 
-  
     responseData = {
-      ...statusConst.success, success: true,
-      data: test
+      ...statusConst.success,
+      success: true,
+      data: test,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };
   }
   return responseData;
 };
-
-
 
 /**
  * Change Status category
@@ -400,7 +420,11 @@ const statusChange = async (data) => {
       where: { id: categoryId },
     });
     if (!category) {
-      return { ...statusConst.error, message: "Category not found", success: false };
+      return {
+        ...statusConst.error,
+        message: "Category not found",
+        success: false,
+      };
     } else {
       let statuschange;
       if (category.status == 1) {
@@ -412,7 +436,8 @@ const statusChange = async (data) => {
     }
     responseData = {
       ...statusConst.success,
-      message: "Status Changed", success: true,
+      message: "Status Changed",
+      success: true,
     };
   } catch (error) {
     responseData = { ...statusConst.error, message: error.message };

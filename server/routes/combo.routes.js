@@ -9,6 +9,7 @@ import authMiddleware from "../middleware/auth.middleware";
 // Allocation routes // 
 
 router.get(comboRoutes.get.path,[authMiddleware], comboController.getCombo);
+router.get(comboRoutes.available_product.path,[authMiddleware], comboController.getCategoriesAvailableProducts);
 
 router.post(comboRoutes.create.path,[authMiddleware,comboValidator.createCombo(), validateRequest], comboController.createCombo);
 

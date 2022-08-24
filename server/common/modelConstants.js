@@ -16,13 +16,13 @@ export default {
     //Category Attributes
     category: ["id"],
     categoryDeatail: ["id", "category_name", "status"],
-    category_List: [ "id","category_name","status"],
+    category_List: [ "id","category_name"],
 
 
     //Product Attributes
     product: ["id"],
     productDeatail: ["id","category_id", "product_name", "purchase_date","product_description","product_cost","status",],
-    product_List: ["id", "product_name"],
+    product_List: ["id", "product_name","product_description"],
     
     // Employee Attributes
     employee: ["id", "first_name", "last_name", "status"],
