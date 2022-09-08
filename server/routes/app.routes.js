@@ -10,7 +10,7 @@ export const moduleRoutes = {
   category: "/category",
   product: "/product",
   allocation: "/allocation",
-  combo: "/combo",
+  combo: "/combo", 
 };
 
 /**
@@ -134,9 +134,11 @@ export const allocationRoutes = {
 
 
 export const comboRoutes = {
-  
-  available_product: {
+  combo_details: {
     path: "/",
+  },
+  available_product: {
+    path: "/available-product",
   },
   get: {
       path: "/:id",
@@ -150,9 +152,5 @@ export const comboRoutes = {
   create: {
     path: "/create",
   },
-  combo_details: {
-    path: "/",
-  }
-  
-
+ 
 };

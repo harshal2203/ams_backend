@@ -151,7 +151,6 @@ const deleteCombo = async (id) => {
  */
 const getCategoriesAvailableProducts = async (req) => {
   let responseData = statusConst.error;
-
   try {
     //Check if  exist
     let productId = [];
@@ -169,7 +168,7 @@ const getCategoriesAvailableProducts = async (req) => {
         },
       ],
     });
-    
+
     let result = availableProduct.map((res) => {
       let data = {};
       data.id = res.id;
@@ -265,9 +264,83 @@ const createCombo = async (req) => {
   return responseData;
 };
 
+const comboDetails = async (req) => {
+  let responseData = statusConst.error;
+  const entityParams = _.get(req, "query", {});
+  let searchText = _.get(entityParams, "q", "");
+  let defaultWhere = {
+    /* status: 1 */
+  };
+  if (_.has(entityParams, "q") && !_.isEmpty(searchText)) {
+    defaultWhere = {
+      //status: 1,
+      [Op.or]: {
+        allocation_id: { [Op.like]: `%${searchText}%` },
+        product_id: { [Op.like]: `%${searchText}%` },
+      },
+    };
+  }
+  try {
+    const entityPagination = Helper.dataPagination(entityParams);
+
+    const combo = await models.comboDetails.findAndCountAll({
+      attributes: modelConstants.combo_details,
+      include: [
+        {
+          model: models.ProductDetails,
+          attributes: modelConstants.product,
+          required: false,
+        },
+        {
+          model: models.allocationDetails,
+          attributes: modelConstants.allocation,
+          required: false,
+        },
+      ],
+
+      where: defaultWhere,
+      offset: entityPagination.offset,
+      limit: entityPagination.limit,
+      order: [["id", "DESC"]],
+    });
+
+    /* 
+        Remove unnecessary field and object from combo details
+    */
+    for (let i = 0; i < combo.rows.length; i++) {
+      const element = combo.rows[i];
+      if (element.allocationDetail) {
+        element.dataValues.comboId = element.allocationDetail.combo_id;
+        delete element.dataValues.allocationDetail;
+      }
+      if (element.ProductDetail) {
+        element.dataValues.productName = element.ProductDetail.product_name;
+        delete element.dataValues.ProductDetail;
+      }
+      delete element.dataValues.allocation_id;
+      delete element.dataValues.product_id;
+    }
+
+    let pagination = entityPagination.pagination;
+    pagination["totalPages"] = Math.ceil(
+      ((combo || {}).count || 0) / pagination.pageSize
+    );
+    pagination["pageRecords"] = ((combo || {}).rows || []).length || 0;
+
+    responseData = {
+      ...statusConst.success,
+      success: true,
+      pagination,
+      data: combo,
+    };
+  } catch (error) {
+    responseData = { ...statusConst.error, message: error.message };
+  }
+  return responseData;
+};
 const AllocationServices = {
   getCombo,
-  // categoryDetails,
+  comboDetails,
   createCombo,
   updateCombo,
   deleteCombo,

@@ -97,9 +97,14 @@ const deleteCombo = async (req, res, next) => {
 }
 
 
+const comboDetails = async (req, res, next) => {
 
-
-
+  comboServices.comboDetails(req).then(result => {
+    res.status(result.status).send(result);
+  }).catch(err => {
+    res.status(422).send({ status: 422, message: (err.message || "Something went wrong!") });
+  });
+}
 
 
 
@@ -107,7 +112,7 @@ const deleteCombo = async (req, res, next) => {
 
 const categoryController = {
   getCombo,
-  //categoryDetails,
+  comboDetails,
   createCombo,
   updateCombo,
   deleteCombo,
