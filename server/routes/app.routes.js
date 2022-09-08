@@ -55,7 +55,16 @@ export const userRoutes = {
 
 
 export const categoryRoutes = {
-  
+
+  category_details: {
+    path: "/",
+  },
+  category_list: {
+    path: "/list",
+  },
+  stock:{
+    path: "/stock"
+  },
   profile: {
     path: "/:id",
   },
@@ -69,15 +78,6 @@ export const categoryRoutes = {
     path: "/",
   },
   create: {
-    path: "/create",
-  },
-  category_list: {
-    path: "/list",
-  },
-  stock:{
-    path: "/stock"
-  },
-  category_details: {
     path: "/",
   },
   status_change: {

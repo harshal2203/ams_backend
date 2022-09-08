@@ -7,12 +7,13 @@ import validateRequest from "../middleware/validateRequest.middleware";
 import authMiddleware from "../middleware/auth.middleware";
                                              
 // Company routes // 
-router.get(categoryRoutes.category_list.path, [authMiddleware],categoryController.categoryList);
 router.get(categoryRoutes.category_details.path, [authMiddleware],categoryController.categoryDetails);
+router.get(categoryRoutes.category_list.path, [authMiddleware],categoryController.categoryList);
+//get stock
+router.get(categoryRoutes.stock.path, categoryController.generateStock);
 router.get(categoryRoutes.profile.path,[authMiddleware], categoryController.categoryProfile);
 
-//get stock
-router.post(categoryRoutes.stock.path, categoryController.generateStock);
+
 
 router.post(categoryRoutes.create.path,[authMiddleware,categoryValidator.createCategory(), validateRequest], categoryController.createCategory);
 
